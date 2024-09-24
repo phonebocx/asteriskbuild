@@ -1,0 +1,6 @@
+src
+build
+.astbuild
+.spandspbuild
+astbuild/spandsp.tar.gz
+docker/*deb

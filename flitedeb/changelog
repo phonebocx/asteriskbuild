@@ -1,0 +1,145 @@
+asterisk-flite (3.0-3) unstable; urgency=medium
+
+  * Team upload
+
+  [ Jonas Smedegaard ]
+  * Update copyright info: Fix source URLs.
+
+  [ Bernhard Schmidt ]
+  * Add missing upstream CFLAG (Closes: #919738)
+
+ -- Bernhard Schmidt <berni@debian.org>  Sun, 20 Jan 2019 23:03:43 +0100
+
+asterisk-flite (3.0-2) unstable; urgency=medium
+
+  * Add patch cherry-picked upstream to fix compile under Asterisk 15.
+  * Refactor to limit use of CDBS:
+    + Stop auto-resolve build-dependencies when in CDBS maintainer mode.
+  * Update watch file:
+    + Fix gpb/gbp typo in usage comment.
+      Thanks to Cyril Brulebois.
+  * Declare compliance with Debian Policy 4.2.1.
+  * Set Rules-Requires-Root: no.
+  * Use https protocol for Homepage and Upstream-Contract URLs.
+  * Tighten lintian overrides regarding License-Reference.
+  * Update Vcs-* fields: Source hosted at Salsa.debian.org now.
+  * Use package section optional (not obsolete extra).
+
+ -- Jonas Smedegaard <dr@jones.dk>  Wed, 17 Oct 2018 18:18:09 +0200
+
+asterisk-flite (3.0-1) unstable; urgency=medium
+
+  [ upstream ]
+  * Nre release.
+
+  [ Jonas Smedegaard ]
+  * Ease git-based maintenance: Add git-buildpackage configuration.
+  * Modernize cdbs:
+    + Do copyright-check in maintainer script (not during build).
+  * Modernize Vcs-* fields: Use git (not cgit) in path.
+  * Declare compliance with Debian Policy 4.1.0.
+  * Update copyright info:
+    + Use https protocol in file format URL.
+    + Extend coverage for myself.
+    + Extend coverage for main upstream author.
+  * Advertise DEP-3 format in patch header.
+  * Unfuzz patch.
+
+ -- Jonas Smedegaard <dr@jones.dk>  Mon, 28 Aug 2017 10:45:09 +0200
+
+asterisk-flite (2.3-1) unstable; urgency=medium
+
+  [ upstream ]
+  * New release.
+    + Proper temp file handling.
+
+  [ Jonas Smedegaard ]
+  * Move packaging to Debian VoIP team.
+  * Bump debhelper compatibility level to 9.
+  * Update copyright info:
+    + Use License-Grant and License-Reference fields.
+      Thanks to Ben Finney.
+    + Extend coverage of Debian packaging.
+  * Add lintian override regarding license in License-Reference field.
+    See bug#786450.
+  * Simplify abi resolving using grep -P.
+  * Declare compliance with Debian Policy 3.9.8.
+  * Update watch file:
+    + Bump file format to version 4.
+    + Refine pattern based on documentation.
+    + Mangle download filename.
+    + Mention gbp in usage comment.
+  * Drop CDBS get-orig-source target: Use gbp import-orig --uscan.
+
+ -- Jonas Smedegaard <dr@jones.dk>  Sat, 17 Dec 2016 20:37:08 +0100
+
+asterisk-flite (2.2-1) unstable; urgency=low
+
+  [ upstream ]
+  * New release.
+    + Fix compatibility with asterisk 11.
+      Closes: bug#725543. Thanks to David Suárez.
+    + Code cleanups. Better error handling in config file parsing.
+    + Fix unresolved symbol issues with Ubuntu-based distros.
+
+  [ Jonas Smedegaard ]
+  * Update README.source to emphasize that control.in file is *not* a
+    show-stopper for contributions, referring to wiki page for details.
+  * Declare compliance with Debian Policy 3.9.6.
+  * Update Vcs-* field URLs.
+  * Bump debhelper compatibility level to 8.
+  * Update copyright info:
+    + Extend coverage for upstream author.
+    + Extend coverage for myself.
+    + Bump packaging license to GPL-3+.
+  * Update package relations:
+    + Stop suppress optional CDBS build-dependency on devscripts.
+    + Declare (build-)dependencies in rules file for CDBS to resolve.
+    + Fix depend on virtual asterisk API package (or skip if not
+      resolved, to ease backporting).
+      Stop build-depend on asterisk: Not needed after all.
+      Closes: bug#685540. Thanks to Gedalya and Jeremy Lainé.
+  * Update upstream source URLs in watch file and CDBS hints.
+  * Add patch 1001 to apply LDFLAGS to linker, licensed as GPL-2+.
+  * Ease building with git-buildpackage: Git-ignore quilt .pc dir.
+
+ -- Jonas Smedegaard <dr@jones.dk>  Mon, 18 May 2015 09:56:44 +0200
+
+asterisk-flite (2.1-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Build-depend on asterisk. Closes: bug#643703
+
+ -- Geert Stappers <stappers@debian.org>  Sat, 13 Oct 2012 15:21:10 +0200
+
+asterisk-flite (2.1-1) unstable; urgency=low
+
+  * New upstream release.
+    + No longer tied to 1.6 branch of Asterisk.
+      Closes: bug#629750, #644499. Thanks to Ralf Treinen and Lucas
+      Nussbaum.
+
+  * Update upstream URLs.
+  * Update package releations:
+    + Relax to (build-)depend unversioned on asterisk: no longer tied to
+      1.6 branch.
+    + Relax to build-depend unversioned on debhelper: required version
+      satisified even in oldstable.
+    + Build-depend on dh-buildinfo.
+    + Newline-delimit package relations.
+    + Update CDBS suppression of optional build-dependencies.
+  * Bump standards-version to 3.9.3.
+  * Use anonscm.debian.org for Vcs-Browser field.
+  * Bump debhelper compat level to 7.
+  * Extend my copyright for Debian packaging.
+  * Update copyright file:
+    + Extend copyright years.
+    + Rewrite using format 1.0.
+
+ -- Jonas Smedegaard <dr@jones.dk>  Fri, 06 Apr 2012 15:01:10 +0200
+
+asterisk-flite (0.1~beta2-1) unstable; urgency=low
+
+  * Initial release. Closes: bug#574385.
+
+ -- Jonas Smedegaard <dr@jones.dk>  Wed, 17 Mar 2010 21:52:59 +0100

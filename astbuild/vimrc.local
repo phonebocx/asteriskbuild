@@ -1,0 +1,11 @@
+set mouse=n
+set ttymouse=
+set tabstop=2
+set shiftwidth=2
+set expandtab
+set modeline
+syntax on
+au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
+filetype plugin indent on
+
+

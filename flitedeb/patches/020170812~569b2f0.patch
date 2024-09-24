@@ -1,0 +1,17 @@
+Description: Fix compilation under Asterisk 15
+Author: Lefteris Zafiris <zaf@fastmail.com>
+Origin: upstream, https://github.com/zaf/Asterisk-Flite/commit/569b2f0
+Last-Update: 2018-10-17
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- a/app_flite.c
++++ b/app_flite.c
+@@ -33,8 +33,6 @@
+ 
+ #include "asterisk.h"
+ 
+-ASTERISK_REGISTER_FILE()
+-
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>

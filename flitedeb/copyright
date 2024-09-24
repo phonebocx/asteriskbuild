@@ -1,0 +1,38 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Asterisk-Flite
+Upstream-Contact: https://github.com/zaf/Asterisk-Flite/issues/
+Source: https://github.com/zaf/Asterisk-Flite/releases
+ https://github.com/zaf/Asterisk-Flite.git
+ git://github.com/zaf/Asterisk-Flite.git
+
+Files: *
+Copyright: 2009-2016, Lefteris Zafiris <zaf.000@gmail.com>
+License-Grant:
+ This program is free software, distributed under the terms of the GNU
+ General Public License Version 2. See the COPYING file at the top of
+ the source tree.
+License: GPL-2
+
+Files: debian/*
+Copyright: 2010-2013,2015-2017, Jonas Smedegaard <dr@jones.dk>
+License-Grant:
+ This file is free software; you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the
+ Free Software Foundation; either version 3 of the License, or (at your
+ option) any later version.
+License: GPL-3+
+
+Files: debian/patches/1001_add_LDFLAGS.patch
+Copyright: 2015, Jonas Smedegaard <dr@jones.dk>
+License-Grant:
+ License: GPL-2+
+License: GPL-2+
+
+License: GPL-2
+License-Reference: /usr/share/common-licenses/GPL-2
+
+License: GPL-2+
+License-Reference: /usr/share/common-licenses/GPL-2
+
+License: GPL-3+
+License-Reference: /usr/share/common-licenses/GPL-3

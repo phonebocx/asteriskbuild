@@ -1,0 +1,13 @@
+0xxx: Grabbed from upstream development.
+1xxx: Possibly relevant for upstream adoption.
+2xxx: Only relevant for official Debian release.
+
+The point of the numbered patch naming scheme is for patches targeted
+for upstream adoption to not be "infected" by already-upstream or
+local-only changes.
+
+The series file can be (re)created with the following command from
+within the patches dir (and manually commenting out any disabled
+patches afterwards):
+
+    ls -1 0* 1* 2* > series
