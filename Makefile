@@ -52,10 +52,12 @@ shell: asterisk flite
 	docker run --rm -it --privileged -w /build/asterisk $(DPARAMS) astbuild bash
 
 # Display the important debs that can be used by other things to import them
-ASTDEBSUFFIX=_$(ASTVER)-$(ASTBUILDNUM)_amd64.deb
 ASTDEBPREFIX=build/asterisk
-ASTDEBCOMPONENTS=config dahdi modules mp3 mysql
-ASTDEBS=$(ASTDEBPREFIX)$(ASTDEBSUFFIX) $(addprefix $(ASTDEBPREFIX)-,$(addsuffix $(ASTDEBSUFFIX),$(ASTDEBCOMPONENTS)))
+ASTDEBSUFFIX=_$(ASTVER)-$(ASTBUILDNUM)_amd64.deb
+ASTALLDEBSUFFIX=_$(ASTVER)-$(ASTBUILDNUM)_all.deb
+ASTDEBCOMPONENTS=dahdi modules mp3 mysql
+ASTDEBS=$(ASTDEBPREFIX)$(ASTDEBSUFFIX) $(ASTDEBPREFIX)-config$(ASTALLDEBSUFFIX)
+ASTDEBS += $(addprefix $(ASTDEBPREFIX)-,$(addsuffix $(ASTDEBSUFFIX),$(ASTDEBCOMPONENTS)))
 DEBS=$(SPDSPDEB) $(ASTDEBS)
 
 debs:
