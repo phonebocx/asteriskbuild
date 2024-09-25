@@ -125,7 +125,7 @@ astbuild/spandsp.tar.gz: $(SPDSPDEB) $(wildcard build/*spandsp*deb)
 	tar -zcf $@ build/*spandsp*deb
 
 .PHONY: spandspdeb
-spandspdeb $(SPDSPDEB): $(SPDSPDEST)/configure.ac $(SPDSPDEST)/debian/changelog
+spandspdeb $(SPDSPDEB): build/spandsp_3.0.0.orig.tar.gz $(SPDSPDEST)/configure.ac $(SPDSPDEST)/debian/changelog
 	docker run --rm -it --privileged -w /build/spandsp $(DPARAMS) spandspbuild dpkg-buildpackage -us -uc
 
 $(SPDSPDEST)/configure.ac: |src/$(SPDSPFILE)
