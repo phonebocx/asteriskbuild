@@ -1,5 +1,5 @@
-ASTVER ?= 20.9.3
-ASTBUILDNUM ?= 3
+ASTVER ?= 20.11.1
+ASTBUILDNUM ?= 1
 ASTFILE=asterisk-$(ASTVER).tar.gz
 ASTURL=http://downloads.asterisk.org/pub/telephony/asterisk/releases/$(ASTFILE)
 ASTDEST=$(shell pwd)/src/asterisk-$(ASTVER)
