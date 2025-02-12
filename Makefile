@@ -1,8 +1,15 @@
-ASTVER ?= 20.11.1
+ifdef COREBUILD
+ABUILDROOT ?= $(COREBUILD)/packages/build
+else
+ABUILDROOT ?= $(shell pwd)/build
+endif
+
+ASTVER ?= 22.2.0
 ASTBUILDNUM ?= 1
 ASTFILE=asterisk-$(ASTVER).tar.gz
 ASTURL=http://downloads.asterisk.org/pub/telephony/asterisk/releases/$(ASTFILE)
 ASTDEST=$(shell pwd)/src/asterisk-$(ASTVER)
+ASTBUILD=$(shell pwd)/astbuild
 #SPDSPCOMMIT=e08c74db3f0
 #SPDSPCOMMIT=9c42d580d97f
 SPDSPCOMMIT=530d58364fff
@@ -11,7 +18,7 @@ SPDSPVERS=3.0.0
 SPDSPREL=43
 SPDSPBUILD=$(SPDSPVERS)-$(SPDSPREL)
 SPDSPDEBNAME=libspandsp3_$(SPDSPBUILD)_amd64.deb
-SPDSPDEB=build/$(SPDSPDEBNAME)
+SPDSPDEB=$(ABUILDROOT)/$(SPDSPDEBNAME)
 SPDSPFILE=$(SPDSPCOMMIT).tar.gz
 SPDSPURL=https://github.com/phonebocx/spandsp/archive/$(SPDSPFILE)
 SPDSPDEST=$(shell pwd)/src/spandsp-$(SPDSPCOMMIT)
@@ -22,16 +29,16 @@ FLITEFILE=$(FLITECOMMIT).tar.gz
 FLITEURL=https://github.com/zaf/Asterisk-Flite/archive/$(FLITEFILE)
 FLITEDEST=$(shell pwd)/src/flite-$(FLITECOMMIT)
 
-CCACHEROOT=/usr/local/build/ccache
-CCACHE_DIR=$(CCACHEROOT)/cachedir
-CCACHE_MAXSIZE=10G
-CCACHE_STATSLOG=$(CCACHEROOT)/ccache.statslog
+CCACHEROOT ?= /usr/local/build/ccache
+CCACHE_DIR ?= $(CCACHEROOT)/cachedir
+CCACHE_MAXSIZE ?= 10G
+CCACHE_STATSLOG ?=$ (CCACHEROOT)/ccache.statslog
 export CCACHE_DIR CCACHE_MAXSIZE CCACHE_STATSLOG
 
 # This is where asterisk downloads temporary files to. We keep this to stop
 # asterisk redownloading everything every time.
 CACHEDIR=$(shell pwd)/src/astcache
-DVOLUMES=-v $(shell pwd)/build:/build -v $(SPDSPDEST):/build/spandsp -v $(ASTDEST):/build/asterisk -v $(FLITEDEST):/build/flite -v $(CCACHEROOT):$(CCACHEROOT)
+DVOLUMES=-v $(ABUILDROOT):/build -v $(SPDSPDEST):/build/spandsp -v $(ASTDEST):/build/asterisk -v $(FLITEDEST):/build/flite -v $(CCACHEROOT):$(CCACHEROOT)
 DPARAMS=$(DVOLUMES) -v $(CACHEDIR):/cache -e AST_DOWNLOAD_CACHE=/cache
 
 # This is an extracted and slightly modified version of the debian Asterisk
@@ -52,7 +59,7 @@ shell: asterisk flite
 	docker run --rm -it --privileged -w /build/asterisk $(DPARAMS) astbuild bash
 
 # Display the important debs that can be used by other things to import them
-ASTDEBPREFIX=build/asterisk
+ASTDEBPREFIX=$(ABUILDROOT)/asterisk
 ASTDEBSUFFIX=_$(ASTVER)-$(ASTBUILDNUM)_amd64.deb
 ASTALLDEBSUFFIX=_$(ASTVER)-$(ASTBUILDNUM)_all.deb
 ASTDEBCOMPONENTS=dahdi modules mp3 mysql
@@ -63,7 +70,7 @@ DEBS=$(SPDSPDEB) $(ASTDEBS)
 debs:
 	@echo $(DEBS)
 
-ASTDEPS=$(SPDSPDEB) build/asterisk_$(ASTVER).orig.tar.gz $(ASTDEST)/debian/control $(ASTDEST)/debian/addons-mp3.tgz $(CACHEFILE)
+ASTDEPS=$(SPDSPDEB) $(ABUILDROOT)/asterisk_$(ASTVER).orig.tar.gz $(ASTDEST)/debian/control $(ASTDEST)/debian/addons-mp3.tgz $(CACHEFILE)
 .PHONY: astbuild
 astbuild $(ASTDEBS): $(ASTDEPS) | .astbuild
 	docker run --rm -it --privileged -w /build/asterisk $(DPARAMS) astbuild dpkg-buildpackage -us -uc
@@ -72,16 +79,16 @@ astclean clean:
 	rm -rf $(ASTDEST)
 
 distclean:
-	rm -rf $(SPDSPDEB) $(shell pwd)/src/spandsp-* $(SPDSPDEST) $(ASTDEST) src/$(ASTFILE) astbuild/*deb src/astdeb.tar.gz src/$(SPDSPFILE) build astbuild/spandsp.tar.gz
+	rm -rf $(SPDSPDEB) $(shell pwd)/src/spandsp-* $(SPDSPDEST) $(ASTDEST) src/$(ASTFILE) $(ASTBUILD)/*deb src/astdeb.tar.gz src/$(SPDSPFILE) build astbuild/spandsp.tar.gz
 
 .PHONY: asterisk
 asterisk: $(ASTDEPS) | .astbuild
 
-build/asterisk_$(ASTVER).orig.tar.gz: src/$(ASTFILE)
+$(ABUILDROOT)/asterisk_$(ASTVER).orig.tar.gz: src/$(ASTFILE)
 	mkdir -p $(@D) && cp src/$(ASTFILE) $@
 
 src/$(ASTFILE):
-	mkdir -p src && wget $(ASTURL) -O $@
+	mkdir -p $(@D) && wget $(ASTURL) -O $@
 
 $(ASTDEST)/debian/control: $(ASTDEST)/configure.ac src/astdeb.tar.gz
 	mkdir -p $(@D) && tar -C $(@D) --strip-components=1 -zxf src/astdeb.tar.gz && touch $@
@@ -119,13 +126,13 @@ $(FLITEDEST)/Makefile: |src/$(FLITEFILE)
 src/$(FLITEFILE):
 	mkdir -p src && wget $(FLITEURL) -O $@
 
-spandsp: build/spandsp_3.0.0.orig.tar.gz astbuild/spandsp.tar.gz | .spandspbuild
+spandsp: $(ABUILDROOT)/spandsp_3.0.0.orig.tar.gz $(ASTBUILD)/spandsp.tar.gz | .spandspbuild
 
-astbuild/spandsp.tar.gz: $(SPDSPDEB) $(wildcard build/*spandsp*deb)
-	tar -zcf $@ build/*spandsp*deb
+$(ASTBUILD)/spandsp.tar.gz: $(SPDSPDEB) $(wildcard $(ABUILDROOT)/*spandsp*deb)
+	cd $(ABUILDROOT); tar -zcf $@ *spandsp*deb
 
 .PHONY: spandspdeb
-spandspdeb $(SPDSPDEB): build/spandsp_3.0.0.orig.tar.gz $(SPDSPDEST)/configure.ac $(SPDSPDEST)/debian/changelog
+spandspdeb $(SPDSPDEB): $(ABUILDROOT)/spandsp_3.0.0.orig.tar.gz $(SPDSPDEST)/configure.ac $(SPDSPDEST)/debian/changelog
 	docker run --rm -it --privileged -w /build/spandsp $(DPARAMS) spandspbuild dpkg-buildpackage -us -uc
 
 $(SPDSPDEST)/configure.ac: |src/$(SPDSPFILE)
@@ -141,7 +148,7 @@ $(SPDSPDEST)/Makefile: $(SPDSPDEST)/configure
 $(SPDSPDEST)/configure: $(SPDSPDEST)/configure.ac
 	docker run --rm -it --privileged -w /spandsp $(DPARAMS) autoreconf -fi
 
-build/spandsp_3.0.0.orig.tar.gz: src/$(SPDSPFILE)
+$(ABUILDROOT)/spandsp_3.0.0.orig.tar.gz: src/$(SPDSPFILE)
 	mkdir -p $(@D) && cp src/$(SPDSPFILE) $@
 
 src/$(SPDSPFILE):
@@ -159,7 +166,7 @@ docker/$(DPATCHDEB):
 .spandspbuild: docker/$(DPATCHDEB) $(wildcard docker/*)
 	docker build -t spandspbuild docker && touch .spandspbuild
 
-.astbuild: .spandspbuild $(wildcard astbuild/*)
+.astbuild: .spandspbuild $(ASTBUILD)/spandsp.tar.gz $(wildcard $(ASTBUILD)/*)
 	docker build -t astbuild astbuild && touch .astbuild
 
 # Preserve the asterisk downloaded cache files

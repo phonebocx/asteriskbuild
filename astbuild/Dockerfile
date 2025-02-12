@@ -1,6 +1,6 @@
 FROM spandspbuild
 
-ADD spandsp.tar.gz /usr/local
+ADD spandsp.tar.gz /usr/local/build
 
 RUN apt-get -y install /usr/local/build/*deb
 

@@ -153,7 +153,7 @@ execute_before_dh_clean:
 	[ ! -r sounds/$(SND_FILE) ] || mv sounds/$($SND_FILE) debian/
 	GREP=grep AWK=awk $(MAKE) distclean
 	[ ! -r debian/$(SND_FILE) ] || mv debian/$(SND_FILE) sounds/
-
+	rm -f .lastclean
 	[ ! -f .version.debian_sav ] || mv .version.debian_sav .version
 	[ ! -f configure.debian_sav ] || mv configure.debian_sav configure
 	[ ! -f third-party/pjproject/pjproject-${PJVER}.tar.bz2.md5.debian_sav ] \
