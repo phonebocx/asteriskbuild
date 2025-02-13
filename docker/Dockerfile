@@ -30,7 +30,7 @@ RUN apt-get update && apt-get install -y \
 	libjansson-dev
 
 RUN apt-get install -y cmark-gfm libcodec2-dev libfftw3-dev libjwt-dev \
-	libneon27-dev libopencore-amrnb-dev libopencore-amrwb-dev libopenr2-dev \
+	libneon27-dev libopencore-amrnb-dev libopencore-amrwb-dev \
 	libopusenc-dev libvo-amrwbenc-dev
 
 # dpatch

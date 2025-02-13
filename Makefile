@@ -2,7 +2,7 @@
 ASTROOT ?= $(shell pwd)
 
 ifdef COREBUILD
-ABUILDROOT ?= $(COREBUILD)/packages/build
+ABUILDROOT ?= $(COREBUILD)/debs
 else
 ABUILDROOT ?= $(ASTROOT)/build
 endif
@@ -67,27 +67,33 @@ ASTALLDEBSUFFIX=_$(ASTVER)-$(ASTBUILDNUM)_all.deb
 ASTDEBCOMPONENTS ?= dahdi modules mp3 mysql
 ASTDEBS=$(ASTDEBPREFIX)$(ASTDEBSUFFIX) $(ASTDEBPREFIX)-config$(ASTALLDEBSUFFIX)
 ASTDEBS += $(addprefix $(ASTDEBPREFIX)-,$(addsuffix $(ASTDEBSUFFIX),$(ASTDEBCOMPONENTS)))
-DEBS=$(SPDSPDEB) $(ASTDEBS)
+ALLASTDEBS=$(SPDSPDEB) $(ASTDEBS)
 
 # Display the important debs that can be used by other things to import them
-.PHONY: astdebs
-astdebs: $(DEBS)
-	@echo $(DEBS)
+.PHONY: showastdebs
+showastdebs:
+	@echo $(ALLASTDEBS)
 
 ASTDEPS=$(SPDSPDEB) $(ABUILDROOT)/asterisk_$(ASTVER).orig.tar.gz $(ASTDEST)/debian/control $(ASTDEST)/debian/addons-mp3.tgz $(CACHEFILE)
+
 .PHONY: astbuild
-astbuild $(ASTDEBS): $(ASTDEPS) | $(ASTROOT)/.astbuild
+astbuild: $(ASTDEBS)
+
+$(ASTDEBS): $(ASTDEPS) | $(ASTROOT)/.astbuild $(ABUILDROOT)
 	docker run --rm -it --privileged -w /build/asterisk $(DPARAMS) astbuild dpkg-buildpackage -us -uc
 
-.PHONY: astclean astdistclean
+.PHONY: astclean spandspclean astdistclean
 astclean:
 	rm -rf $(ASTDEST)
+
+spandspclean:
+	rm -rf $(SPDSPDEST)
 
 astdistclean:
 	rm -rf $(SPDSPDEB) $(ASTROOT)/src/spandsp-* $(SPDSPDEST) $(ASTDEST) $(ASTROOT)/src/$(ASTFILE) $(ASTBUILD)/*deb $(ASTROOT)/src/astdeb.tar.gz $(ASTROOT)/src/$(SPDSPFILE) build $(ASTROOT)/astbuild/spandsp.tar.gz
 
-$(ABUILDROOT)/asterisk_$(ASTVER).orig.tar.gz: $(ASTROOT)/src/$(ASTFILE)
-	mkdir -p $(@D) && cp src/$(ASTFILE) $@
+$(ABUILDROOT)/asterisk_$(ASTVER).orig.tar.gz: $(ASTROOT)/src/$(ASTFILE) | $(ABUILDROOT)
+	mkdir -p $(@D) && cp $(ASTROOT)/src/$(ASTFILE) $@
 
 $(ASTROOT)/src/$(ASTFILE):
 	mkdir -p $(@D) && wget $(ASTURL) -O $@
@@ -151,7 +157,7 @@ $(SPDSPDEST)/Makefile: $(SPDSPDEST)/configure
 $(SPDSPDEST)/configure: $(SPDSPDEST)/configure.ac
 	docker run --rm -it --privileged -w /spandsp $(DPARAMS) autoreconf -fi
 
-$(ABUILDROOT)/spandsp_3.0.0.orig.tar.gz: $(ASTROOT)/src/$(SPDSPFILE)
+$(ABUILDROOT)/spandsp_3.0.0.orig.tar.gz: $(ASTROOT)/src/$(SPDSPFILE) | $(ABUILDROOT)
 	mkdir -p $(@D) && cp $< $@
 
 $(ASTROOT)/src/$(SPDSPFILE):
@@ -173,5 +179,5 @@ $(ASTROOT)/.astbuild: $(ASTROOT)/.spandspbuild $(ASTBUILD)/spandsp.tar.gz $(wild
 	cd $(ASTROOT); docker build -t astbuild astbuild && touch $@
 
 # Preserve the asterisk downloaded cache files
-$(CACHEDIR):
+$(CACHEDIR) $(ABUILDROOT):
 	mkdir -p $@
