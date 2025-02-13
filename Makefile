@@ -1,15 +1,18 @@
+# If this is set, we've been included. Otherwise, $shell pwd is fine.
+ASTROOT ?= $(shell pwd)
+
 ifdef COREBUILD
 ABUILDROOT ?= $(COREBUILD)/packages/build
 else
-ABUILDROOT ?= $(shell pwd)/build
+ABUILDROOT ?= $(ASTROOT)/build
 endif
 
 ASTVER ?= 22.2.0
 ASTBUILDNUM ?= 1
 ASTFILE=asterisk-$(ASTVER).tar.gz
 ASTURL=http://downloads.asterisk.org/pub/telephony/asterisk/releases/$(ASTFILE)
-ASTDEST=$(shell pwd)/src/asterisk-$(ASTVER)
-ASTBUILD=$(shell pwd)/astbuild
+ASTDEST=$(ASTROOT)/src/asterisk-$(ASTVER)
+ASTBUILD=$(ASTROOT)/astbuild
 #SPDSPCOMMIT=e08c74db3f0
 #SPDSPCOMMIT=9c42d580d97f
 SPDSPCOMMIT=530d58364fff
@@ -21,13 +24,13 @@ SPDSPDEBNAME=libspandsp3_$(SPDSPBUILD)_amd64.deb
 SPDSPDEB=$(ABUILDROOT)/$(SPDSPDEBNAME)
 SPDSPFILE=$(SPDSPCOMMIT).tar.gz
 SPDSPURL=https://github.com/phonebocx/spandsp/archive/$(SPDSPFILE)
-SPDSPDEST=$(shell pwd)/src/spandsp-$(SPDSPCOMMIT)
+SPDSPDEST=$(ASTROOT)/src/spandsp-$(SPDSPCOMMIT)
 
 FLITECOMMIT=569b2f0101
 FLITEVERS=3.0
 FLITEFILE=$(FLITECOMMIT).tar.gz
 FLITEURL=https://github.com/zaf/Asterisk-Flite/archive/$(FLITEFILE)
-FLITEDEST=$(shell pwd)/src/flite-$(FLITECOMMIT)
+FLITEDEST=$(ASTROOT)/src/flite-$(FLITECOMMIT)
 
 CCACHEROOT ?= /usr/local/build/ccache
 CCACHE_DIR ?= $(CCACHEROOT)/cachedir
@@ -37,7 +40,7 @@ export CCACHE_DIR CCACHE_MAXSIZE CCACHE_STATSLOG
 
 # This is where asterisk downloads temporary files to. We keep this to stop
 # asterisk redownloading everything every time.
-CACHEDIR=$(shell pwd)/src/astcache
+CACHEDIR=$(ASTROOT)/src/astcache
 DVOLUMES=-v $(ABUILDROOT):/build -v $(SPDSPDEST):/build/spandsp -v $(ASTDEST):/build/asterisk -v $(FLITEDEST):/build/flite -v $(CCACHEROOT):$(CCACHEROOT)
 DPARAMS=$(DVOLUMES) -v $(CACHEDIR):/cache -e AST_DOWNLOAD_CACHE=/cache
 
@@ -46,52 +49,51 @@ DPARAMS=$(DVOLUMES) -v $(CACHEDIR):/cache -e AST_DOWNLOAD_CACHE=/cache
 # https://packages.debian.org/sid/asterisk found at
 #
 #   http://deb.debian.org/debian/pool/main/a/asterisk/asterisk_20.9.3~dfsg+~cs6.14.60671435-1.debian.tar.xz
-ASTDEBSRC=debian
+ASTDEBSRC=$(ASTROOT)/debian
 
 # Temporary changelog files that are used to autogenerate the debian/changelog files
 ACHANGELOG=/tmp/achangelog-$(ASTVER)-$(ASTBUILDNUM)
 SCHANGELOG=/tmp/schangelog-$(SPDSPBUILD)
 
-.PHONY: shell astclean clean distclean asterisk debs
-
-shell: asterisk flite
+.PHONY: astshell
+astshell: asterisk flite
 	@echo dpkg-buildpackage -us -uc
 	docker run --rm -it --privileged -w /build/asterisk $(DPARAMS) astbuild bash
 
-# Display the important debs that can be used by other things to import them
 ASTDEBPREFIX=$(ABUILDROOT)/asterisk
 ASTDEBSUFFIX=_$(ASTVER)-$(ASTBUILDNUM)_amd64.deb
 ASTALLDEBSUFFIX=_$(ASTVER)-$(ASTBUILDNUM)_all.deb
-ASTDEBCOMPONENTS=dahdi modules mp3 mysql
+# This can be overridden to add/remove debs
+ASTDEBCOMPONENTS ?= dahdi modules mp3 mysql
 ASTDEBS=$(ASTDEBPREFIX)$(ASTDEBSUFFIX) $(ASTDEBPREFIX)-config$(ASTALLDEBSUFFIX)
 ASTDEBS += $(addprefix $(ASTDEBPREFIX)-,$(addsuffix $(ASTDEBSUFFIX),$(ASTDEBCOMPONENTS)))
 DEBS=$(SPDSPDEB) $(ASTDEBS)
 
-debs:
+# Display the important debs that can be used by other things to import them
+.PHONY: astdebs
+astdebs: $(DEBS)
 	@echo $(DEBS)
 
 ASTDEPS=$(SPDSPDEB) $(ABUILDROOT)/asterisk_$(ASTVER).orig.tar.gz $(ASTDEST)/debian/control $(ASTDEST)/debian/addons-mp3.tgz $(CACHEFILE)
 .PHONY: astbuild
-astbuild $(ASTDEBS): $(ASTDEPS) | .astbuild
+astbuild $(ASTDEBS): $(ASTDEPS) | $(ASTROOT)/.astbuild
 	docker run --rm -it --privileged -w /build/asterisk $(DPARAMS) astbuild dpkg-buildpackage -us -uc
 
-astclean clean:
+.PHONY: astclean astdistclean
+astclean:
 	rm -rf $(ASTDEST)
 
-distclean:
-	rm -rf $(SPDSPDEB) $(shell pwd)/src/spandsp-* $(SPDSPDEST) $(ASTDEST) src/$(ASTFILE) $(ASTBUILD)/*deb src/astdeb.tar.gz src/$(SPDSPFILE) build astbuild/spandsp.tar.gz
+astdistclean:
+	rm -rf $(SPDSPDEB) $(ASTROOT)/src/spandsp-* $(SPDSPDEST) $(ASTDEST) $(ASTROOT)/src/$(ASTFILE) $(ASTBUILD)/*deb $(ASTROOT)/src/astdeb.tar.gz $(ASTROOT)/src/$(SPDSPFILE) build $(ASTROOT)/astbuild/spandsp.tar.gz
 
-.PHONY: asterisk
-asterisk: $(ASTDEPS) | .astbuild
-
-$(ABUILDROOT)/asterisk_$(ASTVER).orig.tar.gz: src/$(ASTFILE)
+$(ABUILDROOT)/asterisk_$(ASTVER).orig.tar.gz: $(ASTROOT)/src/$(ASTFILE)
 	mkdir -p $(@D) && cp src/$(ASTFILE) $@
 
-src/$(ASTFILE):
+$(ASTROOT)/src/$(ASTFILE):
 	mkdir -p $(@D) && wget $(ASTURL) -O $@
 
-$(ASTDEST)/debian/control: $(ASTDEST)/configure.ac src/astdeb.tar.gz
-	mkdir -p $(@D) && tar -C $(@D) --strip-components=1 -zxf src/astdeb.tar.gz && touch $@
+$(ASTDEST)/debian/control: $(ASTDEST)/configure.ac $(ASTROOT)/src/astdeb.tar.gz
+	mkdir -p $(@D) && tar -C $(@D) --strip-components=1 -zxf $(ASTROOT)/src/astdeb.tar.gz && touch $@
 
 # addons-mp3 is created by:
 #   svn export https://svn.digium.com/svn/thirdparty/mp3/trunk addons/mp3
@@ -99,11 +101,11 @@ $(ASTDEST)/debian/control: $(ASTDEST)/configure.ac src/astdeb.tar.gz
 #   tar zcvf addons-mp3.tgz addons
 #
 # I didn't bother automating it, this code hasn't changed in years
-$(ASTDEST)/debian/addons-mp3.tgz: addons-mp3.tgz
+$(ASTDEST)/debian/addons-mp3.tgz: $(ASTROOT)/addons-mp3.tgz
 	cp $< $@
 
-src/astdeb.tar.gz: $(ASTDEBSRC)/changelog $(wildcard $(ASTDEBSRC)/*) $(wildcard $(ASTDEBSRC)/*/*)
-	tar -zcf $@ $(ASTDEBSRC)
+$(ASTROOT)/src/astdeb.tar.gz: $(ASTDEBSRC)/changelog $(wildcard $(ASTDEBSRC)/*) $(wildcard $(ASTDEBSRC)/*/*)
+	cd $(dir $(ASTDEBSRC)); tar -zcf $@ debian 
 
 $(ASTDEBSRC)/changelog: $(ACHANGELOG)
 	cp $< $@
@@ -114,19 +116,20 @@ $(ACHANGELOG):
 $(SCHANGELOG):
 	echo "spandsp ($(SPDSPBUILD)) unstable; urgency=medium\n\n  * Autogenerated by PhoneBocx asteriskbuild\n\n -- Autobuild <xrobau@gmail.com>  $(shell date '+%a, %d %b %Y %T -0000' --utc)" > $@
 
-$(ASTDEST)/configure.ac: |src/$(ASTFILE)
+$(ASTDEST)/configure.ac: | $(ASTROOT)/src/$(ASTFILE)
 	mkdir -p $(@D) && tar -C $(@D) --strip-components=1 -zxf $|
 
 .PHONY: flite
 flite: $(FLITEDEST)/Makefile
 
-$(FLITEDEST)/Makefile: |src/$(FLITEFILE)
+$(FLITEDEST)/Makefile: | $(ASTROOT)/src/$(FLITEFILE)
 	mkdir -p $(@D) && tar -C $(@D) --strip-components=1 -zxf $|
 
-src/$(FLITEFILE):
+$(ASTROOT)/src/$(FLITEFILE):
 	mkdir -p src && wget $(FLITEURL) -O $@
 
-spandsp: $(ABUILDROOT)/spandsp_3.0.0.orig.tar.gz $(ASTBUILD)/spandsp.tar.gz | .spandspbuild
+.PHONY: spandsp
+spandsp: $(ABUILDROOT)/spandsp_3.0.0.orig.tar.gz $(ASTBUILD)/spandsp.tar.gz | $(ASTROOT)/.spandspbuild
 
 $(ASTBUILD)/spandsp.tar.gz: $(SPDSPDEB) $(wildcard $(ABUILDROOT)/*spandsp*deb)
 	cd $(ABUILDROOT); tar -zcf $@ *spandsp*deb
@@ -135,7 +138,7 @@ $(ASTBUILD)/spandsp.tar.gz: $(SPDSPDEB) $(wildcard $(ABUILDROOT)/*spandsp*deb)
 spandspdeb $(SPDSPDEB): $(ABUILDROOT)/spandsp_3.0.0.orig.tar.gz $(SPDSPDEST)/configure.ac $(SPDSPDEST)/debian/changelog
 	docker run --rm -it --privileged -w /build/spandsp $(DPARAMS) spandspbuild dpkg-buildpackage -us -uc
 
-$(SPDSPDEST)/configure.ac: |src/$(SPDSPFILE)
+$(SPDSPDEST)/configure.ac: | $(ASTROOT)/src/$(SPDSPFILE)
 	mkdir -p $(@D) && tar -C $(@D) --strip-components=1 -zxf $|
 
 $(SPDSPDEST)/debian/changelog: $(SCHANGELOG)
@@ -148,26 +151,26 @@ $(SPDSPDEST)/Makefile: $(SPDSPDEST)/configure
 $(SPDSPDEST)/configure: $(SPDSPDEST)/configure.ac
 	docker run --rm -it --privileged -w /spandsp $(DPARAMS) autoreconf -fi
 
-$(ABUILDROOT)/spandsp_3.0.0.orig.tar.gz: src/$(SPDSPFILE)
-	mkdir -p $(@D) && cp src/$(SPDSPFILE) $@
+$(ABUILDROOT)/spandsp_3.0.0.orig.tar.gz: $(ASTROOT)/src/$(SPDSPFILE)
+	mkdir -p $(@D) && cp $< $@
 
-src/$(SPDSPFILE):
-	mkdir -p src && wget $(SPDSPURL) -O $@
+$(ASTROOT)/src/$(SPDSPFILE):
+	mkdir -p $(@D) && wget $(SPDSPURL) -O $@
 
 .PHONY: docker
-docker: .spandspbuild .astbuild
+docker: $(ASTROOT)/.spandspbuild $(ASTROOT)/.astbuild
 
 DPATCHDEB=dpatch_2.0.41_all.deb
 DPATCHSRC=http://ftp.au.debian.org/debian/pool/main/d/dpatch/$(DPATCHDEB)
 
-docker/$(DPATCHDEB):
+$(ASTROOT)/docker/$(DPATCHDEB):
 	wget $(DPATCHSRC) -O $@
 
-.spandspbuild: docker/$(DPATCHDEB) $(wildcard docker/*)
-	docker build -t spandspbuild docker && touch .spandspbuild
+$(ASTROOT)/.spandspbuild: $(ASTROOT)/docker/$(DPATCHDEB) $(wildcard $(ASTROOT)/docker/*)
+	cd $(ASTROOT); docker build -t spandspbuild docker && touch $@
 
-.astbuild: .spandspbuild $(ASTBUILD)/spandsp.tar.gz $(wildcard $(ASTBUILD)/*)
-	docker build -t astbuild astbuild && touch .astbuild
+$(ASTROOT)/.astbuild: $(ASTROOT)/.spandspbuild $(ASTBUILD)/spandsp.tar.gz $(wildcard $(ASTBUILD)/*)
+	cd $(ASTROOT); docker build -t astbuild astbuild && touch $@
 
 # Preserve the asterisk downloaded cache files
 $(CACHEDIR):
