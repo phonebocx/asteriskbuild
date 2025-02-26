@@ -80,7 +80,7 @@ ASTDEPS=$(SPDSPDEB) $(ABUILDROOT)/asterisk_$(ASTVER).orig.tar.gz $(ASTDEST)/debi
 astbuild: $(ASTDEBS)
 
 $(ASTDEBS): $(ASTDEPS) | $(ASTROOT)/.astbuild $(ABUILDROOT)
-	docker run --rm -it --privileged -w /build/asterisk $(DPARAMS) astbuild dpkg-buildpackage -us -uc || ( echo -e "\n\n *** Asterisk build failed - run 'make astclean' *** \n\n" && exit 99)
+	docker run --rm -it --privileged -w /build/asterisk $(DPARAMS) astbuild dpkg-buildpackage -us -uc || ( echo -e "\n\n *** Asterisk build failed - If dpkg-source is complaining, run 'make astclean' *** \n\n" && exit 99)
 	docker run --rm -it --privileged -w /build/asterisk $(DPARAMS) astbuild make distclean
 
 .PHONY: astclean spandspclean astdistclean
@@ -142,8 +142,8 @@ $(ASTBUILD)/spandsp.tar.gz: $(SPDSPDEB) $(wildcard $(ABUILDROOT)/*spandsp*deb)
 	cd $(ABUILDROOT); tar -zcf $@ *spandsp*deb
 
 .PHONY: spandspdeb
-spandspdeb $(SPDSPDEB): $(ABUILDROOT)/spandsp_3.0.0.orig.tar.gz $(SPDSPDEST)/configure.ac $(SPDSPDEST)/debian/changelog
-	docker run --rm -it --privileged -w /build/spandsp $(DPARAMS) spandspbuild dpkg-buildpackage -us -uc || ( echo -e "\n\n *** SpanDSP build failed - run 'make spandspclean' *** \n\n" && exit 99)
+spandspdeb $(SPDSPDEB): $(ABUILDROOT)/spandsp_3.0.0.orig.tar.gz $(SPDSPDEST)/configure.ac $(SPDSPDEST)/debian/changelog | $(ASTROOT)/.spandspbuild
+	docker run --rm -it --privileged -w /build/spandsp $(DPARAMS) spandspbuild dpkg-buildpackage -us -uc || ( echo -e "\n\n *** SpanDSP build failed - If dpkg-source is complaining, run 'make spandspclean' *** \n\n" && exit 99)
 	docker run --rm -it --privileged -w /build/spandsp $(DPARAMS) spandspbuild make distclean
 
 $(SPDSPDEST)/configure.ac: | $(ASTROOT)/src/$(SPDSPFILE)
