@@ -74,12 +74,12 @@ ALLASTDEBS=$(SPDSPDEB) $(ASTDEBS)
 showastdebs:
 	@echo $(ALLASTDEBS)
 
-ASTDEPS=$(SPDSPDEB) $(ABUILDROOT)/asterisk_$(ASTVER).orig.tar.gz $(ASTDEST)/debian/control $(ASTDEST)/debian/addons-mp3.tgz $(CACHEFILE)
+ASTDEPS=$(SPDSPDEB) $(ABUILDROOT)/asterisk_$(ASTVER).orig.tar.gz $(ASTDEST)/debian/addons-mp3.tgz $(CACHEFILE)
 
 .PHONY: astbuild
 astbuild: $(ASTDEBS)
 
-$(ASTDEBS): $(ASTDEPS) | $(ASTROOT)/.astbuild $(ABUILDROOT)
+$(ASTDEBS): $(ASTDEPS) | $(ASTDEST)/debian/control $(ASTROOT)/.astbuild $(ABUILDROOT)
 	docker run --rm -it --privileged -w /build/asterisk $(DPARAMS) astbuild dpkg-buildpackage -us -uc || ( echo -e "\n\n *** Asterisk build failed - If dpkg-source is complaining, run 'make astclean' *** \n\n" && exit 99)
 	docker run --rm -it --privileged -w /build/asterisk $(DPARAMS) astbuild make distclean
 
