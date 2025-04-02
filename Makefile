@@ -7,7 +7,7 @@ else
 ABUILDROOT ?= $(ASTROOT)/build
 endif
 
-ASTVER ?= 22.2.0
+ASTVER ?= 22.3.0
 ASTBUILDNUM ?= 1
 ASTFILE=asterisk-$(ASTVER).tar.gz
 ASTURL=http://downloads.asterisk.org/pub/telephony/asterisk/releases/$(ASTFILE)
@@ -109,6 +109,7 @@ $(ASTDEST)/debian/control: $(ASTDEST)/configure.ac $(ASTROOT)/src/astdeb.tar.gz
 #
 # I didn't bother automating it, this code hasn't changed in years
 $(ASTDEST)/debian/addons-mp3.tgz: $(ASTROOT)/addons-mp3.tgz
+	mkdir -p $(@D)
 	cp $< $@
 
 $(ASTROOT)/src/astdeb.tar.gz: $(ASTDEBSRC)/changelog $(wildcard $(ASTDEBSRC)/*) $(wildcard $(ASTDEBSRC)/*/*)
