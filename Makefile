@@ -7,7 +7,7 @@ else
 ABUILDROOT ?= $(ASTROOT)/build
 endif
 
-ASTVER ?= 22.3.0
+ASTVER ?= 22.5.0
 ASTBUILDNUM ?= 1
 ASTFILE=asterisk-$(ASTVER).tar.gz
 ASTURL=http://downloads.asterisk.org/pub/telephony/asterisk/releases/$(ASTFILE)

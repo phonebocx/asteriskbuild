@@ -1,8 +1,9 @@
 Source: asterisk
 Priority: optional
 Section: comm
-Maintainer: Debian VoIP Team <pkg-voip-maintainers@lists.alioth.debian.org>
+Maintainer: Rob Thomas <xrobau@gmail.com>
 Uploaders:
+ Debian VoIP Team <pkg-voip-maintainers@lists.alioth.debian.org>,
  Bernhard Schmidt <berni@debian.org>,
  Jeremy Lainé <jeremy.laine@m4x.org>,
  Jonas Smedegaard <dr@jones.dk>,
@@ -78,8 +79,8 @@ Build-Depends:
  zlib1g-dev,
 Standards-Version: 4.7.0
 Homepage: https://www.asterisk.org/
-Vcs-Git: https://salsa.debian.org/pkg-voip-team/asterisk.git
-Vcs-Browser: https://salsa.debian.org/pkg-voip-team/asterisk
+Vcs-Git: https://github.com/phonebocx/asteriskbuild
+Vcs-Browser: https://github.com/phonebocx/asteriskbuild
 Rules-Requires-Root: no
 
 Package: asterisk
